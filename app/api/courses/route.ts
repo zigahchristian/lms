@@ -23,10 +23,12 @@ export async function POST(req: Request) {
         console.log(course)
 
  
-    return NextResponse.json({ course}, { status: 201 });
+    return NextResponse.json({course}, { status: 201 });
     
     } catch (error) {
         console.log("[COURSES]", error);
         return new NextResponse("Internal Error", { status: 500 } );
     }
 }
+
+
