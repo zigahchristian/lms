@@ -4,6 +4,9 @@ import { redirect } from "next/navigation";
 import { IconBadge } from "@/components/icon-badge";
 import { LayoutDashboard } from "lucide-react";
 
+import TitleForm from "./_components/title-form";
+import DescriptionForm from "./_components/description-form";
+
 const CourseIdPage = async ({
   params,
 }: {
@@ -17,11 +20,27 @@ const CourseIdPage = async ({
     return redirect("/");
   }
 
+  function sanitizeCourseData(course) {
+    if (!course) return null;
+
+    return {
+      ...course,
+      title: course.title || "",
+      description: course.description || "",
+      imageUrl: course.imageUrl || "",
+      categoryId: course.categoryId || "",
+      price: course.price || "",
+      // Add all fields that might be null
+    };
+  }
+
   const course = await prisma.course.findUnique({
     where: {
       id: (await params).courseId,
     },
   });
+
+  const sanitizedCourse = sanitizeCourseData(course);
 
   if (!course) {
     return redirect("/");
@@ -56,6 +75,8 @@ const CourseIdPage = async ({
             <IconBadge icon={LayoutDashboard} />
             <h2 className="text-xl">Customize your course</h2>
           </div>
+          <TitleForm initialData={sanitizedCourse} courseId={course.id} />
+          <DescriptionForm initialData={sanitizedCourse} courseId={course.id} />
         </div>
       </div>
     </div>
