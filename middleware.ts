@@ -1,22 +1,63 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+// middleware.ts
+import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
 
-const isPublicRoute = createRouteMatcher([
-  '/sign-in(.*)',
-  '/sign-up(.*)',
-  '/test(.*)',
+export default withAuth(
+  function middleware(req) {
+    const token = req.nextauth.token;
+    const isLoggedIn = !!token;
+    const { pathname } = req.nextUrl;
 
-]);
+    // Public routes that don't require authentication
+    const publicRoutes = [
+      "/auth/signin",
+      "/auth/signout",
+      "/auth/error",
+      "/about",
+    ];
 
-export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) {
-    // Only protect if not a public route
-    await auth.protect();
+    const isPublicRoute = publicRoutes.includes(pathname);
+    const isAuthRoute = pathname.startsWith("/auth/");
+
+    // Redirect authenticated users away from auth pages
+    if (isLoggedIn && isAuthRoute && pathname !== "/auth/signout") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+
+    // Allow public routes and API routes
+    if (isPublicRoute || pathname.startsWith("/api/")) {
+      return NextResponse.next();
+    }
+
+    // If user is not authenticated and trying to access protected route
+    if (!isLoggedIn && !isPublicRoute) {
+      const callbackUrl = encodeURIComponent(pathname);
+      return NextResponse.redirect(
+        new URL(`/auth/signin?callbackUrl=${callbackUrl}`, req.url)
+      );
+    }
+
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        // This is called for every route - we handle authorization in the function above
+        return true;
+      },
+    },
   }
-});
+);
 
 export const config = {
   matcher: [
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    '/(api|trpc)(.*)',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api/auth (API auth routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    "/((?!api/auth|_next/static|_next/image|favicon.ico).*)",
   ],
 };

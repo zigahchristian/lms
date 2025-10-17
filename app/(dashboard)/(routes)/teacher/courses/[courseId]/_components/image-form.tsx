@@ -15,22 +15,24 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
+import { ImageIcon, Pencil, PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import { Course } from "@/lib/generated/prisma";
+import Image from "next/image";
+import { FileUpload } from "@/components/file-upload";
 
-interface DescriptionFormProps {
+interface ImageFormProps {
   initialData: Course;
   courseId: string;
 }
 
 const formSchema = z.object({
-  description: z.string().min(1, { message: "Description is required" }),
+  imageUrl: z.string().min(1, { message: "Image is required" }),
 });
 
-const DescriptionForm = ({ initialData, courseId }: DescriptionFormProps) => {
+const ImageForm = ({ initialData, courseId }: ImageFormProps) => {
   const [isEditing, setIsEditing] = useState(false);
 
   const router = useRouter();
@@ -38,7 +40,7 @@ const DescriptionForm = ({ initialData, courseId }: DescriptionFormProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      description: initialData?.description || "",
+      imageUrl: initialData?.imageUrl || "",
     },
   });
 
@@ -62,60 +64,55 @@ const DescriptionForm = ({ initialData, courseId }: DescriptionFormProps) => {
   return (
     <div className="mt-6 border bg-slate-100 rounded-md p-4">
       <div className="font-medium flex items-center justify-between">
-        Course description
+        Course image
         <Button variant="ghost" onClick={() => setIsEditing((prev) => !prev)}>
-          {isEditing ? (
-            <>Cancel</>
-          ) : (
+          {isEditing && <>Cancel</>}
+          {!isEditing && !initialData.imageUrl && (
             <>
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit description
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Add an image
+            </>
+          )}
+          {!isEditing && initialData.imageUrl && (
+            <>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Edit image
             </>
           )}
         </Button>
       </div>
-      {!isEditing && (
-        <p
-          className={cn(
-            "text-sm mt-2",
-            !initialData.description && "text-slate-500 italic"
-          )}
-        >
-          {initialData.description || "No desescription"}
-        </p>
+
+      {!isEditing && !initialData.imageUrl ? (
+        <div className="flex items-center justify-center h-60 bg-slate-200 rounded-md">
+          <ImageIcon className="h-10 w-10 text-slate-500" />
+        </div>
+      ) : (
+        <div className="relative aspect-video mt-2">
+          <Image
+            alt="upload"
+            fill
+            className="object-cover rounded md"
+            src={initialData.imageUrl || ""}
+          />
+        </div>
       )}
       {isEditing && (
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="w-full mt-4">
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="This course is about ......"
-                      {...field}
-                      disabled={isSubmitting}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button
-              type="submit"
-              disabled={!isValid || isSubmitting}
-              className="mt-4"
-            >
-              Save Changes
-            </Button>
-          </form>
-        </Form>
+        <div>
+          <FileUpload
+            endpoint="courseImage"
+            onChange={(url) => {
+              if (url) {
+                onSubmit({ imageUrl: url });
+              }
+            }}
+          />
+          <div className="text-x text-muted-foreground mt-4">
+            16:9 aspect ration recommended
+          </div>
+        </div>
       )}
     </div>
   );
 };
 
-export default DescriptionForm;
+export default ImageForm;

@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 import prisma from "../../../../lib/db";
 
 export async function PATCH(
@@ -7,13 +8,14 @@ export async function PATCH(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const session = await getServerSession(authOptions);
 
-    if (!userId) {
+    if (!session?.user?.id) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
     const courseId = (await params).courseId;
+    const userId: string = session.user.id;
     const body = await req.json();
 
     // Check if course exists and user owns it
