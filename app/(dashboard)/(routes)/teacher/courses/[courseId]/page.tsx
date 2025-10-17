@@ -8,16 +8,18 @@ import TitleForm from "./_components/title-form";
 import DescriptionForm from "./_components/description-form";
 import ImageForm from "./_components/image-form";
 
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+
 const CourseIdPage = async ({
   params,
 }: {
   params: Promise<{ courseId: string }>;
 }) => {
   // Await the params promise
+  const session = await getServerSession(authOptions);
 
-  const { userId } = await auth();
-
-  if (!userId) {
+  if (!session?.user?.id) {
     return redirect("/");
   }
 
