@@ -2,6 +2,10 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "../../../../lib/db";
+import {
+  deleteFromCloudinary,
+  uploadImageToCloudinary,
+} from "@/lib/cloudinary";
 
 export async function PATCH(
   req: NextRequest,
@@ -28,6 +32,28 @@ export async function PATCH(
 
     if (!existingCourse) {
       return new NextResponse("Course not found", { status: 404 });
+    }
+
+    // Check if course have base64
+
+    const formHasImage = !!body.image;
+
+    if (formHasImage && body.image.startsWith("data:image")) {
+      let cloudinaryData = {
+        url: body.image,
+        public_id: body.imagePublicId,
+      };
+
+      if (body.imagePublicId) {
+        await deleteFromCloudinary(body.imagePublicId);
+      }
+
+      cloudinaryData = await uploadImageToCloudinary(
+        body.image,
+        "course_image"
+      );
+      body.image = cloudinaryData.url;
+      body.imagePublicId = cloudinaryData.public_id;
     }
 
     // Update Course

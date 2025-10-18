@@ -50,6 +50,7 @@ model user {
   email         String    @unique
   emailVerified DateTime? @map("email_verified")
   image         String?
+  imagePublicUrl String?   
   password      String?   // For local authentication
   role          String?  
   accounts      Account[]
@@ -65,7 +66,8 @@ model Course {
   userId      String
   title       String       
   description String?      
-  imageUrl    String?      
+  image       String?
+  imagePublicId String?      
   price       Float?
   isPublished Boolean      @default(false)
   categoryId  String?
@@ -88,7 +90,8 @@ model Category {
 model Attachment {
   id        String   @id @default(uuid())
   name      String   
-  url       String   
+  url       String
+  urlPublicId String   
   courseId  String
   course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())

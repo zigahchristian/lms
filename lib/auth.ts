@@ -54,8 +54,6 @@ export const authOptions: NextAuthOptions = {
         },
       },
       profile(profile: GoogleProfile) {
-        console.log("Google Profile in profile callback:", profile);
-
         const firstname =
           profile.given_name || profile.name?.split(" ")[0] || "";
         const lastname =
@@ -84,8 +82,6 @@ export const authOptions: NextAuthOptions = {
         },
       },
       profile(profile: GithubProfile) {
-        console.log("GitHub Profile in profile callback:", profile);
-
         const nameParts = profile.name?.split(" ") || [];
         const firstname = nameParts[0] || profile.login || "";
         const lastname = nameParts.slice(1).join(" ") || null;
@@ -159,7 +155,6 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account, profile, trigger, session }) {
       // Initial sign-in - this should work for all providers
       if (user) {
-        console.log("JWT Callback - Processing user:", user);
         token.id = user.id;
         token.firstname = user.firstname;
         token.lastname = user.lastname;
@@ -176,7 +171,6 @@ export const authOptions: NextAuthOptions = {
       // Handle OAuth providers specifically
       if (account) {
         if (account.provider === "google" && profile) {
-          console.log("JWT Callback - Processing Google profile:", profile);
           const googleProfile = profile as GoogleProfile;
 
           token.firstname =
@@ -190,7 +184,6 @@ export const authOptions: NextAuthOptions = {
         }
 
         if (account.provider === "github" && profile) {
-          console.log("JWT Callback - Processing GitHub profile:", profile);
           const githubProfile = profile as GithubProfile;
           const name = githubProfile.name || githubProfile.login || "";
           const nameParts = name.split(" ");
@@ -199,19 +192,11 @@ export const authOptions: NextAuthOptions = {
           token.lastname = nameParts.slice(1).join(" ") || null;
           token.image = githubProfile.avatar_url;
           token.name = name;
-
-          console.log("JWT Callback - Updated token with GitHub data:", {
-            firstname: token.firstname,
-            lastname: token.lastname,
-            image: token.image,
-            name: token.name,
-          });
         }
       }
 
       // Profile update from client
       if (trigger === "update" && session?.user) {
-        console.log("JWT Callback - Updating from session:", session.user);
         token.firstname = session.user.firstname;
         token.lastname = session.user.lastname;
         token.image = session.user.image;
@@ -222,8 +207,6 @@ export const authOptions: NextAuthOptions = {
     },
 
     async session({ session, token }) {
-      console.log("Session Callback - Token:", token);
-
       if (session.user) {
         session.user.id = token.id;
         session.user.firstname = token.firstname ?? null;
@@ -240,13 +223,10 @@ export const authOptions: NextAuthOptions = {
         }
       }
 
-      console.log("Session Callback - Final session:", session);
       return session;
     },
 
     async redirect({ url, baseUrl }) {
-      console.log("Redirect Callback - URL:", url, "Base URL:", baseUrl);
-
       // Handle relative URLs
       if (url.startsWith("/")) {
         const allowedRoutes = ["/", "/profile", "/settings"];
