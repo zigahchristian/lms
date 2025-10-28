@@ -35,3 +35,4 @@ A modern **Learning Management System (LMS)** built with **Next.js**, **Prisma**
 
 ## 🗂️ Project Structure
 
+# lms
