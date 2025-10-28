@@ -1,0 +1,11 @@
+{
+  "liveServer.settings.port": 5501,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.minimap.enabled": false,
+  "editor.fontFamily": "Source Code Pro",
+  "editor.fontLigatures": true,
+  "editor.fontSize": 16,
+  "terminal.integrated.fontSize": 10,
+  "explorer.compactFolders": false
+}
