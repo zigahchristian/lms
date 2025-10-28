@@ -4,6 +4,9 @@ import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import VideoPlayer from "./_components/video-player";
+import CourseEnrollmentButton from "./_components/course-enrolment-button";
+import { Separator } from "@/components/ui/separator";
+import { Preview } from "@/components/preview";
 
 interface ChapterIdPageProps {
   params: {
@@ -21,7 +24,7 @@ const ChapterIdPage = async ({ params }: ChapterIdPageProps) => {
     return redirect("/auth/signin");
   }
 
-  const { chapterId, courseId } = params;
+  const { chapterId, courseId } = await params;
 
   const { chapter, course, attachments, nextChapter, userProgress, purchase } =
     await getChapter({
@@ -37,30 +40,69 @@ const ChapterIdPage = async ({ params }: ChapterIdPageProps) => {
   const isLocked = !chapter.isFree && !purchase;
 
   return (
-    <div>
-      {userProgress?.isCompleted && (
-        <Banner variant="success" label="You already completed this chapter" />
-      )}
-      {isLocked && (
-        <Banner
-          variant="warning"
-          label="You need to purchase this course to watch this chapter."
-        />
-      )}
-      <div className="flex flex-col items-center max-w-4xl mx-auth pb-20">
-        <div className="p-4 flex flex-col items-center justify-center">
-          <VideoPlayer
-            chapter={chapter}
-            courseId={courseId}
-            chapterId={chapterId}
-            nextChapter={nextChapter}
-            userProgress={userProgress}
-            purchase={purchase}
-            userId={userId}
+    <>
+      <div>
+        {userProgress?.isCompleted && (
+          <Banner
+            variant="success"
+            label="You already completed this chapter"
           />
+        )}
+        {isLocked && (
+          <Banner
+            variant="warning"
+            label="You need to purchase this course to watch this chapter."
+          />
+        )}
+        <div>
+          <div className="p-4 flex flex-col items-center justify-center">
+            <VideoPlayer
+              chapter={chapter}
+              courseId={courseId}
+              chapterId={chapterId}
+              nextChapter={nextChapter}
+              userProgress={userProgress}
+              purchase={purchase}
+              userId={userId}
+            />
+          </div>
         </div>
+        <div className="p-4 flex flex-col md:flex-row items-center justify-between">
+          <h2 className="text-2xl font-semibold mb-2">{chapter.title}</h2>
+          {purchase ? (
+            {
+              /**ProgressButton */
+            }
+          ) : (
+            <CourseEnrollmentButton
+              courseId={params.courseId}
+              price={course.price}
+            />
+          )}
+        </div>
+        <Separator />
+        <div>
+          <Preview value={chapter.description} />
+        </div>
+        {!!attachments.length && (
+          <>
+            <Separator />
+            <div className="p-4">
+              {attachments.map((attachment) => (
+                <a
+                  href={attachment.url}
+                  target="_blank"
+                  key={attachment.id}
+                  className="flex items-center p-3 w-full bg-sky-200 border text-sky-700 rounded-md hover:underline"
+                >
+                  <p>{attachment.name}</p>
+                </a>
+              ))}
+            </div>
+          </>
+        )}
       </div>
-    </div>
+    </>
   );
 };
 
